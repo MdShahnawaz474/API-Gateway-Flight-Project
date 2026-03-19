@@ -1,7 +1,8 @@
 const { StatusCodes } = require("http-status-codes");
 const { UserRepository } = require("../repositories");
+const bcrypt = require("bcrypt");
 const AppError = require("../utils/errors/appError.js");
-
+const { Auth } = require("../utils/common/");
 const userRepo = new UserRepository();
 
 const createNewUser = async (data) => {
@@ -28,6 +29,29 @@ const createNewUser = async (data) => {
   }
 };
 
+const signInUser = async (data) => {
+  try {
+    const user = await userRepo.getUserByEmail(data.email);
+    if (!user) {
+      throw new AppError(
+        "No user found with this email",
+        StatusCodes.NOT_FOUND,
+      );
+    }
+
+    const isPasswordMatch = Auth.validatePassword(data.password, user.password);
+    if (!isPasswordMatch) {
+      throw new AppError("Invalid password", StatusCodes.BAD_REQUEST);
+    }
+    const jwt = Auth.createToken({ id: user.id, email: user.email });
+    return jwt;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
 module.exports = {
   createNewUser,
+  signInUser,
 };
