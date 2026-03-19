@@ -1,0 +1,25 @@
+const { StatusCodes } = require("http-status-codes");
+const { UserService } = require("../services/index");
+const { SuccessResponse, ErrorResponse } = require("../utils/common/index.js");
+const createUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await UserService.createNewUser({
+      email: email,
+      password: password,
+    });
+    SuccessResponse.data = user;
+    return res.status(StatusCodes.CREATED).json(SuccessResponse);
+  } catch (error) {
+    ErrorResponse.error = error;
+    console.log(error);
+
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(ErrorResponse);
+  }
+};
+
+module.exports = {
+  createUser,
+};
