@@ -1,6 +1,7 @@
 const { StatusCodes } = require("http-status-codes");
 const { ErrorResponse } = require("../utils/common/index.js");
 const AppError = require("../utils/errors/appError.js");
+const { UserService } = require("../services/index.js");
 
 function validateAuthRequest(req, res, next) {
   if (!req.body.email) {
@@ -21,6 +22,27 @@ function validateAuthRequest(req, res, next) {
   next();
 }
 
+async function checkAuth(req, res, next) {
+  try {
+    const isAuthenticated = await UserService.isAuthenticated(
+      req.headers["x-access-token"],
+    );
+   if(isAuthenticated){
+    req.user = isAuthenticated
+    next();
+   }
+
+  } catch (error) {
+    return res.status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message || "Something went wrong",
+      data: {},
+      error: error.explanation || error.message,
+    }); 
+  }
+}
+
 module.exports = {
   validateAuthRequest,
+  checkAuth,
 };

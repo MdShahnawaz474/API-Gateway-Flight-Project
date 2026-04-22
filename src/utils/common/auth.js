@@ -22,7 +22,17 @@ const createToken = async (input, key) => {
   }
 };
 
+const verifyToken = async (token) => {
+  try {
+    jwt.verify(token, serverConfig.JWT_SECRET);
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
 module.exports = {
   validatePassword,
   createToken,
+  verifyToken,
 };

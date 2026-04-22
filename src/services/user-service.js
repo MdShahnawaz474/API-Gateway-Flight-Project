@@ -51,7 +51,37 @@ const signInUser = async (data) => {
   }
 };
 
+const isAuthenticated = async (token) => {
+  try {
+    if (!token) {
+      throw new AppError(
+        "Missing JWT token in request",
+        StatusCodes.BAD_REQUEST,
+      );
+    }
+    const isVerified = await Auth.verifyToken(token);
+    if (!isVerified) {
+      throw new AppError("Invalid or expired token", StatusCodes.UNAUTHORIZED);
+    }
+    const user = await userRepo.get(isVerified.id);
+    if (!user) {
+      throw new AppError("User not found", StatusCodes.NOT_FOUND);
+    }
+    return user.id;
+  } catch (error) {
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError"
+    ) {
+      throw new AppError("Invalid or expired token", StatusCodes.UNAUTHORIZED);
+    }
+    console.log(error);
+    throw error;
+  }
+};
+
 module.exports = {
   createNewUser,
   signInUser,
+  isAuthenticated,
 };
